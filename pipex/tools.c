@@ -1,6 +1,61 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   tools.c                                            :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: otaouil <otaouil@student.42.fr>            +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2021/06/30 10:02:35 by otaouil           #+#    #+#             */
+/*   Updated: 2021/06/30 10:35:40 by otaouil          ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "pipex.h"
 
-int		word_size(char *str, char c)
+char	*ft_strjoin(char const *s1, char const *s2)
+{
+	char	*p;
+	int		i;
+	int		j;
+
+	i = strlen((char *)s1);
+	j = strlen((char *)s2);
+	p = malloc(i + j + 2);
+	if (!(p))
+		return (0);
+	strcpy(p, (char *)s1);
+	strcpy(&p[i], "/");
+	strcpy(&p[i + 1], (char *)s2);
+	return (p);
+}
+
+int	number_of_words(char *str, char c)
+{
+	int	nbr;
+	int	i;
+	int	indice;
+
+	nbr = 0;
+	i = 0;
+	indice = 0;
+	while (str[i] != '\0')
+	{
+		if (str[i] != c)
+		{
+			if (indice != 1)
+			{
+				nbr++;
+				indice = 1;
+			}
+		}
+		else
+			indice = 0;
+		i++;
+	}
+	return (nbr);
+}
+
+int	word_size(char *str, char c)
 {
 	int	i;
 
@@ -32,8 +87,7 @@ char	**ft_split(char const *s, char c)
 
 	i = -1;
 	j = -1;
-	n = number_of_words((char *)s, c);
-	tab = (char **)malloc((n + 1) * 8);
+	tab = (char **)malloc((number_of_words((char *)s, c) + 1) * 8);
 	n = 0;
 	while (s[++i] != '\0')
 	{
@@ -42,8 +96,6 @@ char	**ft_split(char const *s, char c)
 			if (n != 1)
 			{
 				tab[++j] = malloc(word_size((char *)&s[i], c) + 1);
-				if (!(tab[++j]))
-					return (NULL);
 				fill_string((char *)&s[i], tab[j], c);
 				n = 1;
 			}
@@ -53,24 +105,4 @@ char	**ft_split(char const *s, char c)
 	}
 	tab[++j] = 0;
 	return (tab);
-}
-
-char	**ft_free_split(char **d)
-{
-	int				i;
-
-	i = 0;
-	while (d[i])
-	{
-		free(d[i]);
-		i++;
-	}
-	free(d);
-	return (NULL);
-}
-
-void	ft_close(char *p)
-{
-	perror(p);
-	exit(EXIT_FAILURE);
 }
