@@ -213,33 +213,41 @@ int execpipe(char *argv1, char *argv2, char **env)
     return (127);
 }
 
-int execpipe(char *argv1, char *argv2, char **env)
+int execmlpipe(char **argv1, int i, char **env)
 {
     int fds[2];
     pid_t pid;
-    pid_t pid1;
 	int		x;
+	int		fd;
 
-	x = 0;
-    pid = fork();
-    if (pid == -1)
-        ft_close("error : fork failed", 1);
-    if (pid == 0)
-    {
+	fd = 0;
+	x = -1;
+	while (++x < i)
+	{
 		pipe(fds);
-		pid1 = fork();
-		if (pid1 == -1)
+		pid = fork();
+		if (pid == -1)
 			ft_close("error : fork failed", 1);
-		else if (pid1 > 0)
-			execpipe1(argv1, fds, env);
+		if (pid == 0)
+		{
+			if (x != 0)
+			{
+				dup2(fd, 0);
+				close(fd);
+			}
+			if (i - 1 != x)
+				dup2(fds[1], 1);
+			close(fds[0]);
+			exec_cmd(argv1[x], env);
+		}
 		else
-			execpipe2(argv2, fds, env);
+		{
+			wait(NULL);
+			close(fds[1]);
+			fd = fds[0];
+		}
 	}
-    else
-        waitpid(pid, &x, 0);
-	if (x == 0)
-		return (0);
-    return (127);
+    return (0);
 }
 
 int     ft_getfd1(char *str)
@@ -257,7 +265,7 @@ int     ft_getfd2(char *str)
 {
     int fd;
 
-    if ((fd = open(str, O_RDWR | O_CREAT | O_TRUNC,0777)) == -1)
+    if ((fd = open(str, O_RDWR | O_CREAT | O_TRUNC, 0666)) == -1)
         return 0;
     dup2(fd, 1);
 	close(fd);
@@ -278,12 +286,16 @@ int main(int av,char **ac,char **env)
     if (av < 5)
     	ft_close("error : Invalid arguments", 1);
 	if (!strcmp(ac[1], "here_doc"))
-    	ft_pars(ac, 3, av);
+    	ft_pars(ac, 2, av - 1);
 	else if (av > 5)
-		ft_pars(ac, 2, av);
+	{
+		ft_pars(ac, 1, av - 1);
+		execmlpipe(&ac[2], av - 3, env);
+	}
 	else
 		ft_pars(ac, 1, 4);
 	if (!ac[2][0] || !ac[3][0])
 		ft_close("error : Invalid arguments", 1);
-    return (execpipe(ac[2], ac[3],env));
+	//execpipe(ac[2], ac[3],env)
+    return (0);
 }
